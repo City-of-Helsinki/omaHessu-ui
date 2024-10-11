@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Switch, Route } from 'react-router-dom';
 import countries from 'i18n-iso-countries';
 import fi from 'i18n-iso-countries/langs/fi.json';
 import en from 'i18n-iso-countries/langs/en.json';
 import sv from 'i18n-iso-countries/langs/sv.json';
+import { useTranslation } from 'react-i18next';
 import {
   LoginProvider,
   LoginProviderProps,
@@ -13,25 +14,39 @@ import { ApolloProvider } from '@apollo/client';
 import { UserManagerSettings } from 'oidc-client-ts';
 
 import graphqlClient from './graphql/client';
-import Login from './auth/components/login/Login';
-import OidcCallback from './auth/components/oidcCallback/OidcCallback';
-import Profile from './profile/components/profile/Profile';
 import { Provider as ProfileProvider } from './profile/context/ProfileContext';
-import ProfileDeleted from './profile/components/profileDeleted/ProfileDeleted';
-import ErrorPage from './profile/components/errorPage/ErrorPage';
-import AboutPage from './aboutPage/AboutPage';
-import UserGuide from './userGuide/UserGuide';
-import AccessibilityStatement from './accessibilityStatement/AccessibilityStatement';
 import GdprAuthorizationCodeManagerCallback from './gdprApi/GdprAuthorizationCodeManagerCallback';
 import ToastProvider from './toast/ToastProvider';
 import config from './config';
-import PageNotFound from './common/pageNotFound/PageNotFound';
 import { useHistoryListener } from './profile/hooks/useHistoryListener';
-import CookieConsentPage from './cookieConsents/CookieConsentPage';
-import LoginSSO from './auth/components/loginsso/LoginSSO';
 import MatomoTracker from './common/matomo/MatomoTracker';
 import { MatomoProvider } from './common/matomo/matomo-context';
-import PasswordChangeCallback from './passwordChange/PasswordChangeCallback';
+import Loading from './common/loading/Loading';
+
+const OidcCallback = lazy(() =>
+  import('./auth/components/oidcCallback/OidcCallback')
+);
+const PasswordChangeCallback = lazy(() =>
+  import('./passwordChange/PasswordChangeCallback')
+);
+const Login = lazy(() => import('./auth/components/login/Login'));
+const Profile = lazy(() => import('./profile/components/profile/Profile'));
+const AboutPage = lazy(() => import('./aboutPage/AboutPage'));
+const UserGuide = lazy(() => import('./userGuide/UserGuide'));
+const AccessibilityStatement = lazy(() =>
+  import('./accessibilityStatement/AccessibilityStatement')
+);
+const ProfileDeleted = lazy(() =>
+  import('./profile/components/profileDeleted/ProfileDeleted')
+);
+const ErrorPage = lazy(() =>
+  import('./profile/components/errorPage/ErrorPage')
+);
+const LoginSSO = lazy(() => import('./auth/components/loginsso/LoginSSO'));
+const CookieConsentPage = lazy(() =>
+  import('./cookieConsents/CookieConsentPage')
+);
+const PageNotFound = lazy(() => import('./common/pageNotFound/PageNotFound'));
 
 countries.registerLocale(fi);
 countries.registerLocale(en);
@@ -80,55 +95,63 @@ function App(): React.ReactElement {
     sessionPollerSettings: { pollIntervalInMs: 300000 },
   };
 
+  const { t } = useTranslation();
+
   return (
     <LoginProvider {...providerProperties}>
       <ApolloProvider client={graphqlClient}>
         <ToastProvider>
           <MatomoProvider value={matomoTracker}>
             <ProfileProvider>
-              <Switch>
-                <Route path="/callback" component={OidcCallback} />
-                <Route path="/gdpr-callback">
-                  <GdprAuthorizationCodeManagerCallback />
-                </Route>
-                <Route
-                  path="/password-change-callback"
-                  component={PasswordChangeCallback}
-                ></Route>
-                <Route path="/login">
-                  <Login />
-                </Route>
-                <Route path={['/', '/connected-services']} exact>
-                  <WithAuthentication
-                    AuthorisedComponent={Profile}
-                    UnauthorisedComponent={Login}
-                  />
-                </Route>
-                <Route path="/about" exact>
-                  <AboutPage />
-                </Route>
-                <Route path="/guide" exact>
-                  <UserGuide />
-                </Route>
-                <Route path="/accessibility" exact>
-                  <AccessibilityStatement />
-                </Route>
-                <Route path="/profile-deleted" exact>
-                  <ProfileDeleted />
-                </Route>
-                <Route path={config.errorPagePath} exact>
-                  <ErrorPage />
-                </Route>
-                <Route path={config.autoSSOLoginPath} exact>
-                  <LoginSSO />
-                </Route>
-                <Route path={config.cookiePagePath} exact>
-                  <CookieConsentPage />
-                </Route>
-                <Route path="*">
-                  <PageNotFound />
-                </Route>
-              </Switch>
+              <Suspense
+                fallback={
+                  <Loading isLoading loadingText={t('profile.loading')} />
+                }
+              >
+                <Switch>
+                  <Route path="/callback" component={OidcCallback} />
+                  <Route path="/gdpr-callback">
+                    <GdprAuthorizationCodeManagerCallback />
+                  </Route>
+                  <Route
+                    path="/password-change-callback"
+                    component={PasswordChangeCallback}
+                  ></Route>
+                  <Route path="/login">
+                    <Login />
+                  </Route>
+                  <Route path={['/', '/connected-services']} exact>
+                    <WithAuthentication
+                      AuthorisedComponent={Profile}
+                      UnauthorisedComponent={Login}
+                    />
+                  </Route>
+                  <Route path="/about" exact>
+                    <AboutPage />
+                  </Route>
+                  <Route path="/guide" exact>
+                    <UserGuide />
+                  </Route>
+                  <Route path="/accessibility" exact>
+                    <AccessibilityStatement />
+                  </Route>
+                  <Route path="/profile-deleted" exact>
+                    <ProfileDeleted />
+                  </Route>
+                  <Route path={config.errorPagePath} exact>
+                    <ErrorPage />
+                  </Route>
+                  <Route path={config.autoSSOLoginPath} exact>
+                    <LoginSSO />
+                  </Route>
+                  <Route path={config.cookiePagePath} exact>
+                    <CookieConsentPage />
+                  </Route>
+                  <Route path="*">
+                    <PageNotFound />
+                  </Route>
+                </Switch>
+              </Suspense>
             </ProfileProvider>
           </MatomoProvider>
         </ToastProvider>
