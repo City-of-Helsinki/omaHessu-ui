@@ -34,7 +34,11 @@ export default defineConfig({
     nodePolyfills(),
     eslint(),
     sentryVitePlugin({
-      disable: !import.meta.env.REACT_APP_SENTRY_DSN && !import.meta.env.REACT_APP_ENVIRONMENT,
+      silent: !import.meta.env.REACT_APP_SENTRY_AUTH_TOKEN,
+      disable:
+        !import.meta.env.REACT_APP_SENTRY_AUTH_TOKEN &&
+        !import.meta.env.REACT_APP_SENTRY_DSN &&
+        !import.meta.env.REACT_APP_ENVIRONMENT,
       org: 'city-of-helsinki',
       project: 'helsinki-profile-ui',
       url: 'https://sentry.test.hel.ninja',

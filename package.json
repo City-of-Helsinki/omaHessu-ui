@@ -81,7 +81,7 @@
   },
   "scripts": {
     "start": "yarn clear-babel-cache && yarn update-runtime-env && vite",
-    "build": "yarn typecheck && NODE_OPTIONS=--max-old-space-size=2048 vite build",
+    "build": "yarn typecheck && if test $NODE_MAX_MEMORY_MIB ; then NODE_OPTIONS=--max-old-space-size=$NODE_MAX_MEMORY_MIB vite build ; else vite build ; fi",
     "preview": "yarn clear-babel-cache && yarn update-runtime-env && vite preview",
     "test": "cross-env NODE_ENV=test yarn update-runtime-env && vitest",
     "test:e2e": "yarn playwright test",
