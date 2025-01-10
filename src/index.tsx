@@ -14,7 +14,7 @@ declare global {
   }
 }
 
-if (window._env_.REACT_APP_ENVIRONMENT) {
+if (window._env_.REACT_APP_SENTRY_DSN && window._env_.REACT_APP_ENVIRONMENT) {
   Sentry.init({
     dsn: window._env_.REACT_APP_SENTRY_DSN,
     environment: window._env_.REACT_APP_ENVIRONMENT,

@@ -7,6 +7,7 @@
     "@apollo/client": "^3.9.6",
     "@react-aria/visually-hidden": "^3.2.1",
     "@sentry/react": "^7.103.0",
+    "@sentry/vite-plugin": "^2.22.5",
     "@sinonjs/fake-timers": "^8.1.0",
     "@testing-library/dom": "^9.3.4",
     "@testing-library/jest-dom": "^6.4.2",
@@ -80,7 +81,7 @@
   },
   "scripts": {
     "start": "yarn clear-babel-cache && yarn update-runtime-env && vite",
-    "build": "yarn typecheck && vite build",
+    "build": "yarn typecheck && if test $NODE_MAX_MEMORY_MIB ; then NODE_OPTIONS=--max-old-space-size=$NODE_MAX_MEMORY_MIB vite build ; else vite build ; fi",
     "preview": "yarn clear-babel-cache && yarn update-runtime-env && vite preview",
     "test": "cross-env NODE_ENV=test yarn update-runtime-env && vitest",
     "test:e2e": "yarn playwright test",
